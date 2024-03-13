@@ -7,9 +7,7 @@ class Bank:
         self.total_balance = 0
         self.total_loan = 0
         self.bankrupt = False
-        self.loansystem = True
-
-    
+        self.loan_system = True  
 
 
 class User:
@@ -25,11 +23,12 @@ class User:
         self.account_no = random.randint(1000, 10000)
         self.transaction_history = []
         self.loan_amount = 0
+        self.loan_times = 0  
 
     def password_check(self, password):
         return self.password == password
 
-    def deposit(self, amount):
+    def deposite(self, bank, amount):
         if bank.bankrupt == False:
             if amount > 0:
                 self.bank = bank
@@ -39,11 +38,12 @@ class User:
                 self.transaction_history.append(history)
                 print(history)
             else:
-                print(f"Invalid deposit amount. ")
+                print(f"Invalid deposit amount. Please Try again!")
         else:
-            print("The bank is bankrupt,")
+            print("The bank is bankrupt, you cann't deposit money")
 
-    def withdraw(self, amount):
+
+    def withdraw(self,bank, amount):
         if amount > self.balance:
             print("Withdrawal amount exceeded. Insufficient funds.")
         else:
@@ -56,7 +56,7 @@ class User:
     def check_transaction_history(self):
         return self.transaction_history
 
-    def take_loan(self, bank,amount):
+    def take_loan(self, bank, amount):
         self.bank = bank
         if self.bank.bankrupt == False:
             if self.bank.loan_system == True:
@@ -69,14 +69,14 @@ class User:
                     self.loan_times += 1
                     print(history)
                 else:
-                    print("Sorry! Avaiable for 2 time.")
+                    print("Sorry! Available for 2 times.")
             else:
                 print(f"Currently loan is off")
         else:
-            print(f"Bank Fokir , No loan available.")
+            print(f"Bank Fokir, No loan available.")
 
     def transfer(self, recipient, amount):
-        if recipient in bank.users:
+        if recipient in self.bank.users:
             if amount <= self.balance:
                 self.balance -= amount
                 recipient.balance += amount
@@ -85,6 +85,7 @@ class User:
                 print("Insufficient funds for the transfer.")
         else:
             print("Account does not exist for the transfer.")
+
 
 
 class Admin:
@@ -96,9 +97,13 @@ class Admin:
     def create_user(self, name, email, address, account_type, password):
         return self.bank.create_user(name, email, address, account_type, password)
 
-    def delete_user(self, user):
-        self.bank.delete_user(user)
-
+    def delete_user(self, email):
+        for user in self.bank.users:
+            if user.email == email:
+                self.bank.users.remove(user)
+                print(f"User {user.name} deleted successfully.")
+                return
+        print("User not found.")
     def see_all_users(self):
         if len(self.bank.users) > 0:
             print(f"Available users down below")
@@ -111,16 +116,16 @@ class Admin:
             print(f"No user found.")
 
     def check_total_balance(self):
-        return self.bank.get_total_balance()
+        return self.bank.total_balance
 
     def check_total_loan_amount(self):
-        return self.bank.get_total_loan_amount()
+        return self.bank.total_loan
 
     def enable_loan_feature(self):
-        self.bank.enable_loan_feature()
+        self.bank.loan_system = True
 
     def disable_loan_feature(self):
-        self.bank.disable_loan_feature()
+        self.bank.loan_system = False
 
 
 # Example usage:
@@ -136,39 +141,39 @@ class Authentication:
                 print(f"Already Registered!")
                 return
         self.bank.users.append(self.user)
-        print(f"{self.user.name}successfully!")
+        print(f"{self.user.name} account create successfully!")
 
     def login(self, bank, email, password):
         self.bank = bank
         for j in self.bank.users:
             if j.email == email and j.password == password:
                 self.logged_in = j
-                print(f"{j.name}logged in!")
+                print(f"{j.name} logged in!")
                 return True
-        print("email or password no match ")
+        print("Email or password no match ")
 
     def log_out(self):
         self.logged_in = None
 
 
-z= Bank("x", "y")
+z = Bank("x", "y")
 admin = Admin(z)
 register = Authentication()
 
 while True:
     print(f"Welcome to the {z.name} bank")
-    print("choose  Admin or User")
+    print("Choose Admin or User")
     print("1. Admin")
     print("2. User")
     print("3. Exit")
-    option = input("Chose One:")
+    option = input("Choose One:")
 
     if option == "1":
         print("Admin info")
         user_name = input("Enter username:")
-        password = input("Enter  password:")
+        password = input("Enter password:")
         if user_name == admin.name and password == admin.password:
-            print("logged in Successfull")
+            print("Logged in Successfully")
             while True:
                 print("1. Create account for user")
                 print("2. Show all user accounts")
@@ -178,7 +183,7 @@ while True:
                 print("6. Turn on/off loan system")
                 print("7. Turn on/off bankrupt system")
                 print("8. Log Out")
-                option = input("Chose One:")
+                option = input("Choose One:")
 
                 if option == "1":
                     name = input("Enter user name:")
@@ -187,7 +192,7 @@ while True:
                     account_type = input(
                         "Enter '1' for 'Savings' type or Enter '2' for 'Current' type account: "
                     )
-                    password = input("enter user password:")
+                    password = input("Enter user password:")
                     if account_type == "1":
                         new_user = User(name, email, address,
                                         "Savings", password)
@@ -198,11 +203,11 @@ while True:
                         print("Invalid account type. Please Try again!")
                     register.Registration(z, new_user)
                 elif option == "2":
-                    admin.show_users()
+                    admin.see_all_users()  
                 elif option == "3":
-                    admin.check_bank_balance()
+                    print(f"Total available balance: ${admin.check_total_balance()}")
                 elif option == "4":
-                    admin.check_bank_loan()
+                    print(f"Total loan amount: ${admin.check_total_loan_amount()}")
                 elif option == "5":
                     email = input("Enter email:")
                     admin.delete_user(email)
@@ -210,12 +215,22 @@ while True:
                     option = input(
                         "Enter '1' for 'turned on' or Enter '2' for 'turned off':"
                     )
-                    admin.loan_system_status(option)
+                    if option == "1":
+                        admin.enable_loan_feature()
+                    elif option == "2":
+                        admin.disable_loan_feature()
+                    else:
+                        print("Invalid input. Please enter '1' or '2'")
                 elif option == "7":
                     option = input(
                         "Enter '1' for 'turned on' or Enter '2' for 'turned off':"
                     )
-                    admin.bankrupt_status(option)
+                    if option == "1":
+                        z.bankrupt = True
+                    elif option == "2":
+                        z.bankrupt = False
+                    else:
+                        print("Invalid input. Please enter '1' or '2'")
                 elif option == "8":
                     break
                 else:
@@ -231,7 +246,7 @@ while True:
             if log_in:
                 while True:
                     print("1. Show Balance")
-                    print("2. Deposite Money")
+                    print("2. Deposit Money")
                     print("3. Withdraw Money")
                     print("4. Transfer Money")
                     print("5. Transaction History")
@@ -241,19 +256,20 @@ while True:
                     user = register.logged_in
 
                     if option == "1":
-                        user.show_balance()
+                        print(f"Balance: ${user.check_balance()}")
                     elif option == "2":
                         amount = int(input("Enter amount:"))
-                        user.deposite(z, amount)
+                        user.deposite(z,amount)
+
                     elif option == "3":
                         amount = int(input("Enter amount:"))
-                        user.withdraw(z, amount)
+                        user.withdraw(z,amount)
                     elif option == "4":
                         name = input("Enter name of receiver:")
                         amount = int(input("Enter amount:"))
-                        user.transfer_money(z, amount, name)
+                        user.transfer(z, amount)
                     elif option == "5":
-                        user.show_transaction_history()
+                        print(f"Transaction History: {user.check_transaction_history()}")
                     elif option == "6":
                         amount = int(input("Enter loan amount:"))
                         user.take_loan(z, amount)
@@ -265,7 +281,7 @@ while True:
             else:
                 print("No Login User. Please Try again!")
         else:
-            print("There are no user. Please contact with admin")
+            print("There are no users. Please contact with admin")
     elif option == "3":
         break
     else:
